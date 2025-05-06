@@ -33,7 +33,7 @@ export function intmaxwalletsdk(parameters: IntmaxWalletSDKParameters) {
 		onConnect(connectInfo: ProviderConnectInfo): void;
 	};
 	type StorageItem = {
-		[_ in "injected.connected" | `${string}.disconnected`]: true;
+		[_ in "injected.connected" | `${string}.disconnected` | string]: true | unknown;
 	};
 
 	return createConnector<Provider, Properties, StorageItem>((config) => {
@@ -45,6 +45,13 @@ export function intmaxwalletsdk(parameters: IntmaxWalletSDKParameters) {
 			wallet: { url: wallet.url, name: wallet.name || "INTMAX", window: { mode } },
 			metadata: metadata || DEFAULT_METADATA,
 			providers: { eip155: ethereumProvider({ httpRpcUrls }) },
+			storage: config.storage
+			? {
+					get: (key) => config.storage?.getItem(key) ?? null,
+					set: (key, value) => config.storage?.setItem(key, value),
+					remove: (key) => config.storage?.removeItem(key),
+			  }
+			: undefined,
 		});
 		const provider = clinet.provider(
 			parameters.defaultChainId ? `eip155:${parameters.defaultChainId}` : "eip155",
